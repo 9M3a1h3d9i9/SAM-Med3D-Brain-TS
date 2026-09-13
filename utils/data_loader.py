@@ -45,10 +45,36 @@ class Dataset_Union_ALL(Dataset):
         sitk_image = sitk.ReadImage(self.image_paths[index])
         sitk_label = sitk.ReadImage(self.label_paths[index])
 
-        if sitk_image.GetOrigin() != sitk_label.GetOrigin():
-            sitk_image.SetOrigin(sitk_label.GetOrigin())
-        if sitk_image.GetDirection() != sitk_label.GetDirection():
-            sitk_image.SetDirection(sitk_label.GetDirection())
+        # if sitk_image.GetOrigin() != sitk_label.GetOrigin():
+        #     sitk_image.SetOrigin(sitk_label.GetOrigin())
+        # if sitk_image.GetDirection() != sitk_label.GetDirection():
+        #     sitk_image.SetDirection(sitk_label.GetDirection())
+
+# --- Handle dimension mismatch between image (4D) and label (3D) ---
+# هم داده ۳ یعدی و هم ۴ بعدی در قطعه کد زیر پشتیبانی می شوند
+        try:
+            img_origin = list(sitk_image.GetOrigin())
+            lbl_origin = list(sitk_label.GetOrigin())
+            # Pad the shorter one with zeros
+            while len(img_origin) < len(lbl_origin):
+                img_origin.append(0.0)
+            while len(lbl_origin) < len(img_origin):
+                lbl_origin.append(0.0)
+            if img_origin != lbl_origin:
+                sitk_image.SetOrigin(lbl_origin[:sitk_image.GetDimension()])
+
+            img_dir = list(sitk_image.GetDirection())
+            lbl_dir = list(sitk_label.GetDirection())
+            while len(img_dir) < len(lbl_dir):
+                img_dir.append(0.0)
+            while len(lbl_dir) < len(img_dir):
+                lbl_dir.append(0.0)
+            if img_dir != lbl_dir:
+                sitk_image.SetDirection(lbl_dir[:sitk_image.GetDimension()])
+        except Exception as e:
+            print(f"Warning: could not sync origin/direction: {e}")
+
+    # End of the Handleing D missmatch 4D & 3D
 
         sitk_image_arr, _ = sitk_to_nib(sitk_image)
         sitk_label_arr, _ = sitk_to_nib(sitk_label)

@@ -286,7 +286,10 @@ class BaseTrainer:
                                                                gt3D,
                                                                low_res_masks,
                                                                points=[points_input, labels_input])
-            loss = self.seg_loss(prev_masks, gt3D)
+            # loss = self.seg_loss(prev_masks, gt3D)
+# راه‌حل: در فراخوانی loss، gt3D را به float تبدیل کنید.
+# in ReCall Loss must be 'gt3D' Convert to 'float'
+            loss = self.seg_loss(prev_masks, gt3D.float())
             return_loss += loss
         return prev_masks, return_loss
 
@@ -345,7 +348,8 @@ class BaseTrainer:
 
                 image3D = image3D.to(device)
                 gt3D = gt3D.to(device).type(torch.long)
-                with torch.amp.autocast("cuda"):
+                # with torch.amp.autocast("cuda"):
+                with torch.amp.autocast("cuda", enabled=torch.cuda.is_available()):  # CPU train smoke test
                     image_embedding = sam_model.image_encoder(image3D)
 
                     self.click_points = []
@@ -406,7 +410,8 @@ class BaseTrainer:
         plt.close()
 
     def train(self):
-        self.scaler = torch.amp.GradScaler("cuda")
+        # self.scaler = torch.amp.GradScaler("cuda")
+        self.scaler = torch.amp.GradScaler("cuda", enabled=torch.cuda.is_available())  # Modified : CPU train Smoke test
         for epoch in range(self.start_epoch, self.args.num_epochs):
             print(f'Epoch: {epoch}/{self.args.num_epochs - 1}')
 
@@ -478,6 +483,9 @@ def device_config(args):
             # Single GPU
             if args.device == 'mps':
                 args.device = torch.device('mps')
+            # Add another rules ( elif )
+            elif args.device == 'cpu' or not torch.cuda.is_available():
+                args.device = torch.device('cpu')
             else:
                 args.device = torch.device(f"cuda:{args.gpu_ids[0]}")
         else:
