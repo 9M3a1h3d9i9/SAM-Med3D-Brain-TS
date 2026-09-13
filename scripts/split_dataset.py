@@ -97,17 +97,21 @@ def collect_cases(src_root, rois):
 
 
 def link_or_copy(src, dst):
-    """Hard link src→dst, fallback to copy."""
+    """Hard link src→dst, fallback to copy.
+    On Windows, os.link may need admin privileges — fallback to copy always."""
     if os.path.exists(dst):
         return
     if not os.path.exists(src):
         print(f"  ⚠️  missing source: {src}")
         return
+    # On Windows, use copy to avoid admin requirement
+    if sys.platform.startswith("win"):
+        shutil.copy2(src, dst)
+        return
     try:
         os.link(os.path.abspath(src), dst)
     except OSError:
         shutil.copy2(src, dst)
-
 
 def copy_cases_for_split(src_root, roi, cases, dst_root, split_name):
     """Copy/link cases for a given (roi, split_name) into dst_root."""
