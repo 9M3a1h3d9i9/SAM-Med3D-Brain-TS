@@ -1,0 +1,4 @@
+ROI,Pretrained_mean,Pretrained_std,Fine-tuned (Smoke)_mean,Fine-tuned (Smoke)_std,Delta
+edema,0.0048,0.0078,0.006,0.0099,0.0012
+enhancing,0.0014,0.0022,0.0019,0.003,0.0004
+non_enhancing,0.0009,0.001,0.0019,0.0021,0.001
