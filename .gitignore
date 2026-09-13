@@ -2,7 +2,6 @@ data/*
 test_data/*/pred*
 test_data/test_train
 ckpt/*
-results/*
 work_dir/*
 */__pycache__/*
 __pycache__/*
