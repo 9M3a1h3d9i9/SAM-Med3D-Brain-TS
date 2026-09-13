@@ -2,129 +2,133 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-red.svg)](https://pytorch.org/)
-[![License](https://img.shields.io/badge/License-Academic-green.svg)](#license)
+[![License](https://img.shields.io/badge/License-Academic-green.svg)](#مجوز)
 
-Fine-tuning **SAM-Med3D** for **Brain Tumour Segmentation** on the Medical Segmentation Decathlon (MSD) Task01 dataset (BraTS 2016/2017).
-
----
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Features](#features)
-3. [Requirements](#requirements)
-4. [Installation](#installation)
-5. [Dataset Preparation](#dataset-preparation)
-6. [Preprocessing](#preprocessing)
-7. [Train / Val / Test Split](#train--val--test-split)
-8. [Training](#training)
-9. [Evaluation](#evaluation)
-10. [Comparison & Visualization](#comparison--visualization)
-11. [Project Structure](#project-structure)
-12. [Windows Support](#windows-support)
-13. [Server Deployment](#server-deployment)
-14. [Troubleshooting](#troubleshooting)
-15. [Documentation](#documentation)
-16. [Citation](#citation)
-17. [License](#license)
-18. [Authors](#authors)
+فاین‌تیونینگ مدل **SAM-Med3D** برای **تقسیم‌بندی تومور مغزی** روی دیتاست Medical Segmentation Decathlon (MSD) Task01 — BraTS 2016/2017.
 
 ---
 
-## Overview
+## فهرست مطالب
 
-**SAM-Med3D** is a fully 3D adaptation of the Segment Anything Model (SAM) designed for volumetric medical images. This project fine-tunes SAM-Med3D on the **MSD Task01 (Brain Tumour)** dataset to segment three regions of interest:
-
-- **Edema (ED)**
-- **Non-enhancing Tumour (NCR)**
-- **Enhancing Tumour (ET)**
-
-The pipeline covers the complete workflow: dataset download, preprocessing to SAM-Med3D format, train/val/test splitting (with optional K-Fold Cross-Validation), training, evaluation, and comparison with the pretrained model.
-
-**Model:** `sam_med3d_turbo.pth` (~91M parameters)  
-**Dataset:** MSD Task01 — Brain Tumour (BraTS 2016/2017)  
-**Input size:** 128 × 128 × 128  
-**Modalities used:** FLAIR (channel 0)
-
----
-
-## Features
-
-- ✅ Complete preprocessing pipeline from raw MSD NIfTI files to SAM-Med3D format
-- ✅ Support for Train/Val/Test split and **K-Fold Cross-Validation**
-- ✅ Prompt-based inference (centroid of ground truth as prompt point)
-- ✅ Per-case Dice, IoU, and HD95 computation
-- ✅ Automated comparison table with Wilcoxon signed-rank test
-- ✅ Publication-quality bar plots and box plots
-- ✅ Cross-platform: Linux, WSL, and Windows
-- ✅ 10 critical bug fixes for the upstream SAM-Med3D code
-- ✅ Ready-to-use scripts for server deployment
+1. [معرفی پروژه](#معرفی-پروژه)
+2. [امکانات](#امکانات)
+3. [پیش‌نیازهای سخت‌افزاری](#پیشنیازهای-سختافزاری)
+4. [پیش‌نیازهای نرم‌افزاری](#پیشنیازهای-نرمافزاری)
+5. [راه‌اندازی روی لینوکس](#راهاندازی-روی-لینوکس)
+6. [راه‌اندازی روی ویندوز](#راهاندازی-روی-ویندوز)
+7. [دانلود دیتاست](#دانلود-دیتاست)
+8. [دانلود چک‌پوینت](#دانلود-چکپوینت)
+9. [پیش‌پردازش داده](#پیشپردازش-داده)
+10. [تقسیم داده (Train/Val/Test یا K-Fold)](#تقسیم-داده)
+11. [آموزش مدل](#آموزش-مدل)
+12. [ارزیابی مدل](#ارزیابی-مدل)
+13. [مقایسه و رسم نمودار](#مقایسه-و-رسم-نمودار)
+14. [ساختار پروژه](#ساختار-پروژه)
+15. [عیب‌یابی](#عیبیابی)
+16. [مستندات](#مستندات)
+17. [ارجاع](#ارجاع)
+18. [مجوز](#مجوز)
+19. [نویسندگان](#نویسندگان)
 
 ---
 
-## Requirements
+## معرفی پروژه
 
-### Hardware
+**SAM-Med3D** یک نسخه کاملاً سه‌بعدی از مدل Segment Anything Model (SAM) است که برای تصاویر پزشکی حجمی طراحی شده. در این پروژه، SAM-Med3D روی دیتاست **MSD Task01 (Brain Tumour)** فاین‌تیون می‌شود تا سه ناحیه از تومور مغزی را تقسیم‌بندی کند:
 
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| GPU | 12 GB VRAM | 16 GB VRAM (RTX 4060 Ti / A100) |
-| RAM | 32 GB | 64 GB |
-| Storage | 50 GB free | 100 GB free |
+- **ادم (Edema - ED)**
+- **تومور غیرفعال (Non-enhancing Tumour - NCR)**
+- **تومور فعال (Enhancing Tumour - ET)**
 
-### Software
+پایپ‌لاین شامل: دانلود دیتاست، پیش‌پردازش، تقسیم داده، آموزش، ارزیابی و مقایسه با مدل پیش‌آموزش‌دیده است.
 
-- **OS:** Linux (Ubuntu 20.04+ / Pop!_OS), WSL2, or Windows 10+
-- **Python:** 3.10
-- **CUDA:** 11.8 or 12.1
+| ویژگی | مقدار |
+|-------|-------|
+| **مدل** | `sam_med3d_turbo.pth` (~۹۱ میلیون پارامتر) |
+| **دیتاست** | MSD Task01 — Brain Tumour (BraTS 2016/2017) |
+| **اندازه ورودی** | ۱۲۸ × ۱۲۸ × ۱۲۸ |
+| **مودالیتی** | FLAIR (کانال ۰) |
+
+---
+
+## امکانات
+
+- ✅ پیش‌پردازش کامل از NIfTI خام MSD به فرمت SAM-Med3D
+- ✅ پشتیبانی از تقسیم ساده (Train/Val/Test) و **K-Fold Cross-Validation**
+- ✅ ارزیابی با prompt point (centroid از ground truth)
+- ✅ محاسبه Dice، IoU و HD95 برای هر کیس
+- ✅ جدول مقایسه خودکار + آزمون Wilcoxon
+- ✅ نمودارهای Bar و Box با کیفیت مقاله
+- ✅ سازگاری با Linux، WSL و Windows
+- ✅ رفع ۱۰ باگ مهم در کد اصلی SAM-Med3D
+- ✅ اسکریپت‌های آماده برای استقرار روی سرور
+
+---
+
+## پیش‌نیازهای سخت‌افزاری
+
+| قطعه | حداقل | توصیه‌شده |
+|------|--------|-----------|
+| **GPU** | ۱۲ گیگابایت VRAM | ۱۶ گیگابایت (RTX 4060 Ti / A100) |
+| **RAM** | ۳۲ گیگابایت | ۶۴ گیگابایت |
+| **فضای دیسک** | ۵۰ گیگابایت خالی | ۱۰۰ گیگابایت خالی |
+
+---
+
+## پیش‌نیازهای نرم‌افزاری
+
+- **سیستم‌عامل:** Linux (Ubuntu 20.04+ / Pop!_OS)، WSL2 یا Windows 10+
+- **پایتون:** 3.10
+- **CUDA:** 11.8 یا 12.1
 - **PyTorch:** 2.x
-- **Conda:** Miniforge or Miniconda
+- **Conda:** Miniforge یا Miniconda
 
 ---
 
-## Installation
+## راه‌اندازی روی لینوکس
 
-### Step 1: Install Miniforge (Linux / WSL)
+### گام ۱: نصب Miniforge
 
 ```bash
 wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
 bash Miniforge3-Linux-x86_64.sh
+# در تمام مراحل yes بزنید
 source ~/.bashrc
-conda --version
+conda --version    # باید 26.x.x چاپ کند
 ```
 
-### Step 2: Create Environment
+### گام ۲: ساخت محیط پایتون
 
 ```bash
 conda create --name sammed3d_gpu python=3.10 -y
 conda activate sammed3d_gpu
 ```
 
-### Step 3: Install PyTorch with CUDA
+### گام ۳: نصب PyTorch با CUDA
 
-Choose the command that matches your CUDA version:
+بر اساس نسخه CUDA سیستم، یکی را انتخاب کنید:
 
 ```bash
-# For CUDA 12.1 (recommended for RTX 40xx series)
+# برای CUDA 12.1 (توصیه‌شده برای RTX 40xx)
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-# For CUDA 11.8
+# یا برای CUDA 11.8
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
-Verify GPU access:
+### گام ۴: تست دسترسی به GPU
 
 ```bash
 python -c "import torch; print('CUDA:', torch.cuda.is_available()); print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
 ```
 
-Expected output:
+خروجی مورد انتظار:
 ```
 CUDA: True
 GPU: NVIDIA GeForce RTX 4060 Ti
 ```
 
-### Step 4: Install Dependencies
+### گام ۵: نصب کتابخانه‌های جانبی
 
 ```bash
 pip install uv
@@ -133,7 +137,7 @@ uv pip install torchio opencv-python-headless matplotlib \
     nibabel pandas scipy tqdm
 ```
 
-### Step 5: Clone Repository
+### گام ۶: کلون کردن پروژه
 
 ```bash
 git clone https://github.com/9M3a1h3d9i9/SAM-Med3D-Brain-TS.git
@@ -142,109 +146,324 @@ cd SAM-Med3D-Brain-TS
 
 ---
 
-## Dataset Preparation
+## راه‌اندازی روی ویندوز
 
-### Download MSD Task01 (Brain Tumour)
+### گام ۱: نصب Miniconda for Windows
+
+از سایت رسمی دانلود و نصب کنید:
+- `https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe`
+
+**نکته مهم:** هنگام نصب، گزینه **"Just Me"** را انتخاب کنید (نه "All Users"). به این ترتیب نیازی به دسترسی Administrator نخواهید داشت.
+
+### گام ۲: نصب Git for Windows
+
+از سایت رسمی دانلود و نصب کنید:
+- `https://git-scm.com/download/win`
+
+### گام ۳: باز کردن Anaconda Prompt
+
+از منوی Start، **Anaconda Prompt** را اجرا کنید.
+
+### گام ۴: ساخت محیط پایتون
+
+```cmd
+conda create --name sammed3d_gpu python=3.10 -y
+conda activate sammed3d_gpu
+```
+
+### گام ۵: نصب PyTorch با CUDA
+
+```cmd
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
+
+### گام ۶: تست دسترسی به GPU
+
+```cmd
+python -c "import torch; print('CUDA:', torch.cuda.is_available()); print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
+```
+
+### گام ۷: نصب کتابخانه‌های جانبی
+
+```cmd
+pip install torchio monai nibabel pandas scipy tqdm
+```
+
+### گام ۸: کلون کردن پروژه
+
+```cmd
+cd %USERPROFILE%
+git clone https://github.com/9M3a1h3d9i9/SAM-Med3D-Brain-TS.git
+cd SAM-Med3D-Brain-TS
+```
+
+---
+
+## دانلود دیتاست
+
+دیتاست `Task01_BrainTumour.tar` (~۷.۶ گیگابایت) از سرور AWS قابل دانلود است.
+
+### لینک دانلود مستقیم
+
+```
+https://msd-for-monai.s3-us-west-2.amazonaws.com/Task01_BrainTumour.tar
+```
+
+### روش ۱: دانلود با `wget` (Linux / WSL)
 
 ```bash
 mkdir -p data/raw
 cd data/raw
 wget -c https://msd-for-monai.s3-us-west-2.amazonaws.com/Task01_BrainTumour.tar
+
+# استخراج
 tar -xvf Task01_BrainTumour.tar
 rm Task01_BrainTumour.tar
+
+# پاک‌سازی فایل‌های متادیتای macOS
 find Task01_BrainTumour -name "._*" -delete
 find Task01_BrainTumour -name ".DS_Store" -delete
 cd ../..
 ```
 
-**File size:** ~7.6 GB  
-**Cases:** 484 training + 266 test  
-**Modalities:** FLAIR, T1w, t1gd, T2w (stored in a 4D file)
+### روش ۲: دانلود دستی (توصیه‌شده برای Windows)
 
-Expected directory structure:
+۱. با مرورگر (Chrome, Firefox) به این آدرس بروید:
+   `https://msd-for-monai.s3-us-west-2.amazonaws.com/Task01_BrainTumour.tar`
+
+۲. فایل ~۷.۶ گیگابایتی را دانلود کنید (ممکن است ۳۰-۶۰ دقیقه طول بکشد).
+
+۳. فایل دانلود شده را به مسیر زیر منتقل کنید:
+   ```
+   %USERPROFILE%\SAM-Med3D-Brain-TS\data\raw\Task01_BrainTumour.tar
+   ```
+
+۴. در Anaconda Prompt، استخراج کنید:
+   ```cmd
+   cd data\raw
+   tar -xvf Task01_BrainTumour.tar
+   del Task01_BrainTumour.tar
+   cd ..\..
+   ```
+
+### روش ۳: دانلود با PowerShell (Windows)
+
+```powershell
+mkdir data\raw
+cd data\raw
+Invoke-WebRequest -Uri "https://msd-for-monai.s3-us-west-2.amazonaws.com/Task01_BrainTumour.tar" -OutFile "Task01_BrainTumour.tar"
+tar -xvf Task01_BrainTumour.tar
+del Task01_BrainTumour.tar
+cd ..\..
+```
+
+### ساختار مورد انتظار پس از استخراج
 
 ```
 data/raw/Task01_BrainTumour/
-├── imagesTr/          # 484 images (240, 240, 155, 4)
-├── labelsTr/          # 484 labels (240, 240, 155)
-├── imagesTs/          # 266 test images
-└── dataset.json
+├── imagesTr/          # ۴۸۴ تصویر ۴بعدی (.nii.gz)
+│   ├── BRATS_001.nii.gz
+│   ├── BRATS_002.nii.gz
+│   └── ...
+├── labelsTr/          # ۴۸۴ برچسب ۳بعدی (.nii.gz)
+│   ├── BRATS_001.nii.gz
+│   ├── BRATS_002.nii.gz
+│   └── ...
+├── imagesTs/          # ۲۶۶ تصویر تست (بدون برچسب)
+│   ├── BRATS_485.nii.gz
+│   └── ...
+└── dataset.json       # متادیتای دیتاست
 ```
 
-### Download SAM-Med3D Checkpoint
+### بررسی صحت دانلود
 
-Download `SAM-Med3D-turbo.pth` from the [official repository](https://github.com/uni-medical/SAM-Med3D) and place it in:
-
+**Linux / WSL:**
 ```bash
-mkdir -p SAM_Med3D/ckpt
-# Move the downloaded file here:
-# SAM_Med3D/ckpt/sam_med3d_turbo.pth
+ls data/raw/Task01_BrainTumour/imagesTr/ | wc -l
+# باید ۴۸۴ چاپ کند
+
+ls data/raw/Task01_BrainTumour/labelsTr/ | wc -l
+# باید ۴۸۴ چاپ کند
+```
+
+**Windows:**
+```cmd
+dir /b data\raw\Task01_BrainTumour\imagesTr\*.nii.gz | find /c /v ""
 ```
 
 ---
 
-## Preprocessing
+## دانلود چک‌پوینت
 
-The `prepare_brats.py` script converts MSD Task01 into SAM-Med3D format:
+چک‌پوینت `SAM-Med3D-turbo.pth` (~۳۸۳ مگابایت) از **مخزن رسمی SAM-Med3D** قابل دانلود است. سه روش دسترسی وجود دارد:
 
-- Extracts **FLAIR** (channel 0) as the input image
-- Creates **binary masks** for each ROI (edema, enhancing, non_enhancing)
-- Resamples to **1.5 mm isotropic** spacing
-- Saves as **3D tensors** (not 4D)
+### روش ۱: از Hugging Face (توصیه‌شده - سریع‌ترین)
 
-Run on all 484 cases:
+فایل چک‌پوینت روی Hugging Face میزبانی می‌شود:
 
+**لینک دانلود مستقیم:**
+```
+https://huggingface.co/blueyo0/SAM-Med3D/resolve/main/sam_med3d_turbo.pth
+```
+
+دستور دانلود در Linux / WSL:
+
+```bash
+mkdir -p SAM_Med3D/ckpt
+cd SAM_Med3D/ckpt
+wget -c https://huggingface.co/blueyo0/SAM-Med3D/resolve/main/sam_med3d_turbo.pth -O sam_med3d_turbo.pth
+cd ../..
+```
+
+دستور دانلود در Windows (با PowerShell):
+
+```powershell
+mkdir SAM_Med3D\ckpt
+cd SAM_Med3D\ckpt
+Invoke-WebRequest -Uri "https://huggingface.co/blueyo0/SAM-Med3D/resolve/main/sam_med3d_turbo.pth" -OutFile "sam_med3d_turbo.pth"
+cd ..\..
+```
+
+### روش ۲: از Google Drive (لینک رسمی مخزن)
+
+به صفحه رسمی مخزن SAM-Med3D بروید:
+- `https://github.com/uni-medical/SAM-Med3D`
+
+در بخش **"Model Zoo"** یا **"Pre-trained Checkpoints"**، لینک Google Drive را پیدا کنید. فایل `SAM-Med3D-turbo.pth` را دانلود کنید.
+
+پس از دانلود، فایل را در مسیر `SAM_Med3D/ckpt/sam_med3d_turbo.pth` قرار دهید.
+
+### روش ۳: استفاده از ابزار `gdown` (برای Google Drive)
+
+اگر از Google Drive دانلود می‌کنید، نصب `gdown` توصیه می‌شود:
+
+```bash
+pip install gdown
+mkdir -p SAM_Med3D/ckpt
+gdown --id <FILE_ID> -O SAM_Med3D/ckpt/sam_med3d_turbo.pth
+```
+
+(به‌جای `<FILE_ID>` شناسه فایل Google Drive را از لینک مخزن رسمی بردارید)
+
+### بررسی صحت دانلود
+
+پس از دانلود، حجم فایل را بررسی کنید:
+
+**Linux / WSL:**
+```bash
+ls -lh SAM_Med3D/ckpt/sam_med3d_turbo.pth
+# باید نشان دهد: ~۳۸۳ مگابایت
+```
+
+**Windows:**
+```cmd
+dir SAM_Med3D\ckpt\sam_med3d_turbo.pth
+```
+
+اگر حجم فایل کمتر از ۳۸۰ مگابایت بود، دانلود ناقص است. دوباره دانلود کنید.
+
+### ساختار مورد انتظار پس از دانلود
+
+```
+SAM-Med3D-Brain-TS/
+├── SAM_Med3D/
+│   └── ckpt/
+│       └── sam_med3d_turbo.pth    # ~۳۸۳ مگابایت
+├── scripts/
+├── utils/
+├── data/
+└── README.md
+```
+
+### نکته مهم
+
+**این چک‌پوینت روی GitHub این پروژه نیست** چون حجمش از محدودیت ۱۰۰ مگابایتی GitHub بیشتر است. شما باید آن را از منابع بالا دانلود کنید. پس از دانلود، **آن را در Git push نکنید** (چون در `.gitignore` قرار دارد).
+
+---
+
+## پیش‌پردازش داده
+
+اسکریپت `prepare_brats.py` داده MSD را به فرمت SAM-Med3D تبدیل می‌کند:
+- استخراج **FLAIR** (کانال ۰) به‌عنوان تصویر
+- ساخت **ماسک باینری** برای هر ROI
+- Resample به **۱.۵ میلی‌متر ایزوتروپیک**
+- ذخیره به‌صورت **۳بعدی** (نه ۴بعدی)
+
+### اجرا روی همه ۴۸۴ کیس
+
+**روی لینوکس:**
 ```bash
 python scripts/prepare_brats.py
 ```
 
-Run on a small subset (e.g., 3 cases) for quick testing:
+**روی ویندوز:**
+```cmd
+prepare_brats.bat
+```
+یا مستقیم:
+```cmd
+python scripts\prepare_brats.py
+```
 
+### اجرا روی تعداد محدود (برای تست سریع)
+
+**روی لینوکس:**
 ```bash
 python scripts/prepare_brats.py 3
 ```
 
-**Output structure:**
+**روی ویندوز:**
+```cmd
+python scripts\prepare_brats.py 3
+```
 
+**زمان تخمینی:** ~۱۵-۳۰ دقیقه برای ۴۸۴ کیس
+
+**ساختار خروجی:**
 ```
 data/brain_pre_sam/
 ├── edema/Task01_BrainTumour/
 │   ├── imagesTr/BRATS_001.nii.gz    # (1, 160, 160, 103)
-│   └── labelsTr/BRATS_001.nii.gz    # (1, 160, 160, 103) binary
+│   └── labelsTr/BRATS_001.nii.gz    # (1, 160, 160, 103) باینری
 ├── enhancing/Task01_BrainTumour/...
 └── non_enhancing/Task01_BrainTumour/...
 ```
 
 ---
 
-## Train / Val / Test Split
+## تقسیم داده
 
-### Mode 1: Standard Split (70 / 15 / 15)
+### حالت ۱: تقسیم ساده (۷۰/۱۵/۱۵)
 
+**روی لینوکس:**
 ```bash
 python scripts/split_dataset.py --mode split --ratios 0.70,0.15,0.15 --overwrite
 ```
 
-Output:
+**روی ویندوز:**
+```cmd
+python scripts\split_dataset.py --mode split --ratios 0.70,0.15,0.15 --overwrite
+```
+
+خروجی:
 ```
 data/brain_train/
 data/brain_val/
 data/brain_test/
 ```
 
-### Mode 2: K-Fold Cross-Validation
+### حالت ۲: K-Fold Cross-Validation
 
 ```bash
 python scripts/split_dataset.py --mode kfold --k 5 --overwrite
 ```
 
-Each fold uses a different subset for test and validation:
-
-- `test_idx` = fold
+هر fold از یک زیرمجموعه متفاوت برای test و validation استفاده می‌کند:
+- `test_idx` = fold فعلی
 - `val_idx` = (fold + 1) % K
-- `train_idx` = all remaining folds
+- `train_idx` = سایر foldها
 
-Output:
+خروجی:
 ```
 data/brain_fold_1/{train,val,test}/
 data/brain_fold_2/{train,val,test}/
@@ -252,89 +471,91 @@ data/brain_fold_2/{train,val,test}/
 data/brain_fold_5/{train,val,test}/
 ```
 
-### Verify the Split
+### بررسی صحت تقسیم
 
+**روی لینوکس:**
 ```bash
-# Standard split
 for s in train val test; do
     n=$(find data/brain_${s} -name "*.nii.gz" | wc -l)
     echo "brain_${s}: ${n} files"
 done
+```
 
-# K-Fold
-for i in 1 2 3 4 5; do
-    echo "=== Fold ${i} ==="
-    for s in train val test; do
-        n=$(find data/brain_fold_${i}/${s} -name "*.nii.gz" | wc -l)
-        echo "  ${s}: ${n}"
-    done
-done
+**روی ویندوز:**
+```cmd
+dir /s /b data\brain_train\*.nii.gz | find /c /v ""
+dir /s /b data\brain_val\*.nii.gz | find /c /v ""
+dir /s /b data\brain_test\*.nii.gz | find /c /v ""
 ```
 
 ---
 
-## Training
+## آموزش مدل
 
-### Configure `train.sh`
-
-Edit the training script:
+### تنظیم فایل `train.sh` (لینوکس)
 
 ```bash
 nano train.sh
 ```
 
-Recommended configuration for **16 GB VRAM GPU**:
+### تنظیم فایل `train.bat` (ویندوز)
 
-```bash
-python train.py \
- --batch_size 2 \
- --num_workers 4 \
- --task_name "ft_brats_full" \
- --checkpoint "SAM_Med3D/ckpt/sam_med3d_turbo.pth" \
- --device "cuda" \
- --num_epochs 50 \
- --accumulation_steps 8 \
- --img_size 128 \
+فایل `train.bat` از قبل آماده است و شامل تنظیمات زیر است:
+
+```bat
+python train.py ^
+ --batch_size 2 ^
+ --num_workers 4 ^
+ --task_name "ft_brats_full" ^
+ --checkpoint "SAM_Med3D/ckpt/sam_med3d_turbo.pth" ^
+ --device "cuda" ^
+ --num_epochs 50 ^
+ --accumulation_steps 8 ^
+ --img_size 128 ^
  --lr 8e-5
 ```
 
-### Training Parameters Explained
+### توضیح پارامترها
 
-| Parameter | Description | Recommended |
-|-----------|-------------|-------------|
-| `--batch_size` | Number of samples per batch | 2 (16GB) / 4 (24GB) / 8 (40GB) |
-| `--num_workers` | Data loader workers | 4-8 |
-| `--num_epochs` | Total training epochs | 50-200 |
-| `--accumulation_steps` | Gradient accumulation | 8 (16GB) / 4 (24GB) / 2 (40GB) |
-| `--img_size` | Input volume size | 128 (must match pretrained) |
-| `--lr` | Learning rate | 8e-5 |
+| پارامتر | توضیح | مقدار توصیه‌شده |
+|---------|-------|-----------------|
+| `--batch_size` | تعداد نمونه در هر batch | ۲ (۱۶GB) / ۴ (۲۴GB) / ۸ (۴۰GB) |
+| `--num_workers` | تعداد workerهای DataLoader | ۴-۸ |
+| `--num_epochs` | تعداد epochهای آموزش | ۵۰-۲۰۰ |
+| `--accumulation_steps` | Gradient Accumulation | ۸ (۱۶GB) / ۴ (۲۴GB) / ۲ (۴۰GB) |
+| `--img_size` | اندازه ورودی | ۱۲۸ (باید با pretrained یکسان باشد) |
+| `--lr` | Learning Rate | 8e-5 |
 
-### Launch Training
+### اجرای آموزش
 
-**Option 1: Direct run**
-
+**روی لینوکس (مستقیم):**
 ```bash
-cd ~/SAM-Med3D
+cd ~/SAM-Med3D-Brain-TS
 bash train.sh
 ```
 
-**Option 2: Using tmux (recommended for long runs)**
-
+**روی لینوکس (با tmux برای جلسات طولانی):**
 ```bash
 tmux new -s training
 conda activate sammed3d_gpu
-cd ~/SAM-Med3D
+cd ~/SAM-Med3D-Brain-TS
 bash train.sh
-
-# Detach without stopping: Ctrl+B then D
-# Re-attach later: tmux attach -t training
+# خروج از tmux بدون بستن: Ctrl+B سپس D
+# بازگشت: tmux attach -t training
 ```
 
-**Option 3: K-Fold training loop**
+**روی ویندوز:**
+```cmd
+cd %USERPROFILE%\SAM-Med3D-Brain-TS
+train.bat
+```
 
+### حلقه K-Fold (اختیاری)
+
+**روی لینوکس:**
 ```bash
 for fold in 1 2 3 4 5; do
-    echo "=== Training Fold ${fold} ==="
+    echo "=== Fold ${fold} ==="
     SAM_DATA_ROOT=data/brain_fold_${fold}/train \
         python train.py \
             --batch_size 2 \
@@ -349,41 +570,40 @@ for fold in 1 2 3 4 5; do
 done
 ```
 
-### Output
-
-Training saves results in `work_dir/<task_name>/`:
+### خروجی آموزش
 
 ```
 work_dir/ft_brats_full/
-├── sam_model_latest.pth      # Latest checkpoint
-├── sam_model_loss_best.pth   # Best loss
-├── sam_model_dice_best.pth   # Best Dice
-├── Loss.png                  # Loss curve
-├── Dice.png                  # Dice curve
-└── output_*.log              # Training log
+├── sam_model_latest.pth      # آخرین چک‌پوینت
+├── sam_model_loss_best.pth   # بهترین Loss
+├── sam_model_dice_best.pth   # بهترین Dice
+├── Loss.png                  # نمودار Loss
+├── Dice.png                  # نمودار Dice
+└── output_*.log              # لاگ آموزش
 ```
 
-### Monitor Training
+### مانیتور آموزش
 
-In a second terminal:
+**در ترمینال دوم:**
 
 ```bash
-# GPU usage (live)
+# مانیتور GPU
 watch -n 2 nvidia-smi
 
-# Training log
-tail -f ~/SAM-Med3D/work_dir/ft_brats_full/output_*.log
+# لاگ آموزش
+tail -f ~/SAM-Med3D-Brain-TS/work_dir/ft_brats_full/output_*.log
 
-# RAM and CPU
+# RAM و CPU
 htop
 ```
 
 ---
 
-## Evaluation
+## ارزیابی مدل
 
-### Evaluate Pretrained Model (Zero-Shot Baseline)
+### ارزیابی مدل Pretrained (Baseline)
 
+**روی لینوکس:**
 ```bash
 python scripts/evaluate.py \
     "SAM_Med3D/ckpt/sam_med3d_turbo.pth" \
@@ -391,8 +611,14 @@ python scripts/evaluate.py \
     "results/results_pretrained.csv"
 ```
 
-### Evaluate Fine-Tuned Model
+**روی ویندوز:**
+```cmd
+python scripts\evaluate.py "SAM_Med3D\ckpt\sam_med3d_turbo.pth" ".\data\brain_test" "results\results_pretrained.csv"
+```
 
+### ارزیابی مدل Fine-Tuned
+
+**روی لینوکس:**
 ```bash
 python scripts/evaluate.py \
     "work_dir/ft_brats_full/sam_model_dice_best.pth" \
@@ -400,7 +626,12 @@ python scripts/evaluate.py \
     "results/results_finetuned.csv"
 ```
 
-### Evaluation Output (CSV)
+**روی ویندوز:**
+```cmd
+evaluate.bat work_dir\ft_brats_full\sam_model_dice_best.pth .\data\brain_test results\results_finetuned.csv
+```
+
+### خروجی CSV
 
 ```
 case,roi,dice,gt_voxels,pred_voxels
@@ -409,19 +640,17 @@ BRATS_001,enhancing,0.2856,9354,20250
 ...
 ```
 
-### Expected Dice Ranges
+### بازه‌های Dice مورد انتظار
 
-| ROI | Pretrained (Zero-Shot) | Fine-Tuned (Full) |
+| ROI | Pretrained (Zero-Shot) | Fine-Tuned (کامل) |
 |-----|------------------------|-------------------|
-| Edema | 0.55 - 0.65 | 0.75 - 0.85 |
-| Enhancing | 0.20 - 0.30 | 0.70 - 0.80 |
-| Non-enhancing | 0.10 - 0.20 | 0.50 - 0.65 |
+| ادم (Edema) | 0.55 - 0.65 | 0.75 - 0.85 |
+| تومور فعال (Enhancing) | 0.20 - 0.30 | 0.70 - 0.80 |
+| تومور غیرفعال (Non-enhancing) | 0.10 - 0.20 | 0.50 - 0.65 |
 
 ---
 
-## Comparison & Visualization
-
-Compare two evaluation CSVs and generate plots:
+## مقایسه و رسم نمودار
 
 ```bash
 python scripts/compare_results.py \
@@ -432,191 +661,67 @@ python scripts/compare_results.py \
     "results/comparison_final"
 ```
 
-### Outputs
+### خروجی‌ها
 
-- `results/comparison_final_table.csv` — Comparison table with mean/std/delta
-- `results/comparison_final_bar.png` — Bar plot of Dice per ROI
-- `results/comparison_final_box.png` — Box plot of Dice distribution
-- Console output with **Wilcoxon signed-rank test** per ROI
+- `results/comparison_final_table.csv` — جدول مقایسه با میانگین/انحراف معیار
+- `results/comparison_final_bar.png` — نمودار Bar برای Dice هر ROI
+- `results/comparison_final_box.png` — نمودار Box برای توزیع Dice
+- خروجی کنسول شامل **آزمون Wilcoxon**
 
-### Sample Output
+### نمونه خروجی
 
 ```
-=== Comparison Table ===
+=== جدول مقایسه ===
           ROI  Pretrained_mean  Fine-tuned_mean  Delta
         edema           0.607            0.745  +0.138
     enhancing           0.226            0.720  +0.494
 non_enhancing           0.142            0.560  +0.418
 
-=== Wilcoxon signed-rank test (per ROI) ===
-  edema: stat=123.000, p=0.0001  ✅ significant
-  enhancing: stat=156.000, p=0.0001  ✅ significant
-  non_enhancing: stat=98.000, p=0.0002  ✅ significant
+=== آزمون Wilcoxon ===
+  edema: p=0.0001  ✅ معنادار
+  enhancing: p=0.0001  ✅ معنادار
+  non_enhancing: p=0.0002  ✅ معنادار
 ```
 
 ---
 
-## Project Structure
+## ساختار پروژه
 
 ```
 SAM-Med3D-Brain-TS/
 ├── scripts/
-│   ├── prepare_brats.py        # MSD Task01 → SAM-Med3D format
-│   ├── split_dataset.py        # Train/Val/Test or K-Fold split
-│   ├── evaluate.py             # Evaluation on test set
-│   ├── compare_results.py      # Comparison + plots + Wilcoxon
-│   └── deploy_to_server.sh     # Automated server deployment
+│   ├── prepare_brats.py        # پیش‌پردازش MSD → SAM-Med3D
+│   ├── split_dataset.py        # تقسیم Train/Val/Test یا K-Fold
+│   ├── evaluate.py             # ارزیابی روی Test Set
+│   ├── compare_results.py      # مقایسه + نمودار + Wilcoxon
+│   └── deploy_to_server.sh     # استقرار خودکار روی سرور
 ├── utils/
 │   ├── data_loader.py          # Dataset class
-│   ├── data_paths.py           # Path globbing with SAM_DATA_ROOT
-│   └── metric_utils.py         # Dice, NSD, surface distances
-├── segment_anything/           # SAM-Med3D model architecture
-│   ├── modeling/
-│   │   ├── image_encoder3D.py
-│   │   ├── prompt_encoder3D.py
-│   │   └── mask_decoder3D.py
-│   └── build_sam3D.py
-├── data/                       # (gitignored)
-│   ├── raw/
-│   └── brain_pre_sam/
-├── work_dir/                   # (gitignored) Checkpoints & logs
-├── results/                    # Reports, CSVs, plots
-│   ├── TECHNICAL_REPORT.md
-│   ├── FULL_GUIDE_0_to_100.md
-│   └── comparison_*.png
-├── train.py                    # Main training script
-├── train.sh / train.bat        # Launch scripts
-├── evaluate.bat                # Windows evaluation
-├── prepare_brats.bat           # Windows preprocessing
-├── README.md
-└── LICENSE
+│   ├── data_paths.py           # مدیریت مسیرها با SAM_DATA_ROOT
+│   └── metric_utils.py         # Dice، NSD، فاصله سطح
+├── segment_anything/           # معماری SAM-Med3D
+├── data/                       # (نادیده گرفته شده در Git)
+├── work_dir/                   # (نادیده گرفته شده) چک‌پوینت‌ها
+├── results/                    # گزارش‌ها و نمودارها
+├── train.py                    # اسکریپت اصلی آموزش
+├── train.sh / train.bat        # اسکریپت‌های اجرا
+├── evaluate.bat                # ارزیابی Windows
+├── prepare_brats.bat           # پیش‌پردازش Windows
+└── README.md
 ```
 
 ---
 
-## Windows Support
-
-For Windows 10/11 users (without WSL), use the provided `.bat` scripts.
-
-### Prerequisites
-
-1. Install **Miniconda for Windows** from [here](https://docs.conda.io/en/latest/miniconda.html)
-2. Open **Anaconda Prompt** (no admin required)
-
-### Setup
-
-```cmd
-conda create --name sammed3d_gpu python=3.10 -y
-conda activate sammed3d_gpu
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-pip install torchio monai nibabel pandas scipy tqdm
-```
-
-### Preprocess
-
-```cmd
-prepare_brats.bat
-```
-
-### Split
-
-```cmd
-python scripts\split_dataset.py --mode split --ratios 0.70,0.15,0.15 --overwrite
-```
-
-### Train
-
-```cmd
-train.bat
-```
-
-### Evaluate
-
-```cmd
-evaluate.bat work_dir\ft_brats_full\sam_model_dice_best.pth .\data\brain_test results\results_finetuned.csv
-```
-
-**Note:** On Windows, `os.link` requires admin privileges. The `split_dataset.py` script automatically falls back to `shutil.copy2` on Windows.
-
----
-
-## Server Deployment
-
-For training on a remote GPU server (e.g., university A100):
-
-### From Your Local Machine
-
-```bash
-./scripts/deploy_to_server.sh USERNAME@SERVER_ADDRESS PORT --with-test-data
-```
-
-### Manual Transfer
-
-```bash
-# Package code (excludes data, work_dir, checkpoints)
-tar -czf /tmp/sam_code.tar.gz \
-    --exclude='./data' \
-    --exclude='./work_dir' \
-    --exclude='./results' \
-    --exclude='./.git' \
-    --exclude='__pycache__' \
-    --exclude='*.pyc' \
-    --exclude='*.pth' \
-    -C ~/SAM-Med3D .
-
-# Upload
-scp -P PORT /tmp/sam_code.tar.gz USERNAME@SERVER:~/
-```
-
-### On the Server
-
-```bash
-# Connect
-ssh USERNAME@SERVER -p PORT
-
-# Extract
-mkdir -p ~/SAM-Med3D
-tar -xzf ~/sam_code.tar.gz -C ~/SAM-Med3D
-rm ~/sam_code.tar.gz
-cd ~/SAM-Med3D
-
-# Setup environment
-conda create --name sammed3d_gpu python=3.10 -y
-conda activate sammed3d_gpu
-nvidia-smi  # Check CUDA version
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-pip install uv
-uv pip install torchio monai nibabel pandas scipy tqdm opencv-python-headless matplotlib
-
-# Download dataset
-mkdir -p data/raw && cd data/raw
-wget -c https://msd-for-monai.s3-us-west-2.amazonaws.com/Task01_BrainTumour.tar
-tar -xvf Task01_BrainTumour.tar && rm Task01_BrainTumour.tar
-cd ../..
-
-# Preprocess and split
-python scripts/prepare_brats.py
-python scripts/split_dataset.py --mode kfold --k 5 --overwrite
-
-# Train with tmux
-tmux new -s training
-bash train.sh
-# Ctrl+B then D to detach
-```
-
----
-
-## Troubleshooting
+## عیب‌یابی
 
 ### `CUDA out of memory`
 
-- Reduce `--batch_size` (try 1)
-- Increase `--accumulation_steps` (e.g., 16)
-- Reduce `--img_size` (but must remain 128 for pretrained)
+- `--batch_size` را کاهش دهید (مثلاً ۱)
+- `--accumulation_steps` را افزایش دهید (مثلاً ۱۶)
 
 ### `Torch not compiled with CUDA enabled`
 
-You installed the CPU version of PyTorch. Reinstall with:
+شما نسخه CPU PyTorch را نصب کرده‌اید. دوباره با نسخه GPU نصب کنید:
 
 ```bash
 pip uninstall torch torchvision torchaudio -y
@@ -625,7 +730,7 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 ### `No module named 'segment_anything'`
 
-Add the project root to `sys.path` at the top of your script:
+در ابتدای اسکریپت، ریشه پروژه را به `sys.path` اضافه کنید:
 
 ```python
 import sys, os
@@ -634,15 +739,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 ### `Tensors must have same number of dimensions`
 
-4D image vs 3D label mismatch in `data_loader.py`. Ensure images are saved as 3D (use `flair_resampled[0]` in `prepare_brats.py`).
+ناسازگاری بین تصویر ۴بعدی و برچسب ۳بعدی در `data_loader.py`. مطمئن شوید فایل‌ها به‌صورت ۳بعدی ذخیره شده‌اند.
 
 ### `AttributeError: 'BaseTrainer' object has no attribute 'seq_loss'`
 
-Typo in `train.py`. Replace `seq_loss` with `seg_loss`.
+اشتباه تایپی در `train.py`. `seq_loss` را به `seg_loss` تغییر دهید.
 
 ### `DiceCELoss: Expected floating point tensor`
 
-Cast the target to float in `train.py`:
+در `train.py`، target را به float تبدیل کنید:
 
 ```python
 loss = self.seg_loss(prev_masks, gt3D.float())
@@ -650,11 +755,11 @@ loss = self.seg_loss(prev_masks, gt3D.float())
 
 ### `pos_embed` size mismatch
 
-Ensure `--img_size 128` (the pretrained model expects 128³ input).
+مطمئن شوید `--img_size 128` است (مدل pretrained به ورودی ۱۲۸³ نیاز دارد).
 
-### Windows: `wmic is not recognized`
+### روی ویندوز: `wmic is not recognized`
 
-`wmic` is deprecated in Windows 10/11. Use PowerShell instead:
+`wmic` در ویندوز ۱۰/۱۱ حذف شده. از PowerShell استفاده کنید:
 
 ```powershell
 Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores
@@ -662,69 +767,84 @@ Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores
 nvidia-smi
 ```
 
-### Windows: `The requested operation requires elevation`
+### روی ویندوز: `The requested operation requires elevation`
 
-Run PowerShell or Command Prompt **as Administrator**. Right-click → **Run as administrator**.
+PowerShell یا Command Prompt را **as Administrator** اجرا کنید.
+
+### روی ویندوز: خطای `pycrypto` یا `build error`
+
+اگر پکیجی نیاز به کامپایلر داشت، از `--only-binary` استفاده کنید:
+
+```cmd
+pip install --only-binary :all: پکیج_name
+```
 
 ---
 
-## Documentation
+## مستندات
 
-- [**TECHNICAL_REPORT.md**](results/TECHNICAL_REPORT.md) — Detailed technical report (in Persian)
-- [**FULL_GUIDE_0_to_100.md**](results/FULL_GUIDE_0_to_100.md) — Comprehensive guide from DL basics to server execution (in Persian)
+- [**TECHNICAL_REPORT.md**](results/TECHNICAL_REPORT.md) — گزارش فنی پروژه
+- [**FULL_GUIDE_0_to_100.md**](results/FULL_GUIDE_0_to_100.md) — راهنمای جامع از مفاهیم پایه تا اجرا روی سرور
 
 ---
 
-## Citation
+## ارجاع
 
-If you use this code in your research, please cite the original SAM-Med3D paper:
+اگر از این کد استفاده می‌کنید، لطفاً به مقاله اصلی SAM-Med3D ارجاع دهید:
 
 ```bibtex
 @article{wang2023sam,
   title={SAM-Med3D: Towards General-purpose Segmentation Models for Volumetric Medical Images},
-  author={Wang, Haoyu and Guo, Sizheng and Ye, Jin and Deng, Zhongying and Cheng, Junlong and Li, Tianbin and Chen, Jianpin and Su, Yanzhou and Huang, Ziyan and Shen, Yiqing and others},
+  author={Wang, Haoyu and Guo, Sizheng and Ye, Jin and others},
   journal={arXiv preprint arXiv:2310.15161},
   year={2023}
 }
 ```
 
-And the MSD dataset paper:
+و مقاله دیتاست MSD:
 
 ```bibtex
 @article{antonelli2022medical,
   title={The Medical Segmentation Decathlon},
-  author={Antonelli, Michela and Reinke, Annika and Bakas, Spyridon and Farahani, Keyvan and Kopp-Schneider, Annette and Landman, Bennett A and Litjens, Geert and Menze, Bjoern and Ronneberger, Olaf and Summers, Ronald M and others},
+  author={Antonelli, Michela and Reinke, Annika and Bakas, Spyridon and others},
   journal={Nature Communications},
   volume={13},
   number={1},
   pages={4128},
-  year={2022},
-  publisher={Nature Publishing Group}
+  year={2022}
 }
 ```
 
 ---
 
-## License
+## مجوز
 
-This project is intended for **academic and research use only**. Commercial use is not permitted. Please refer to the licenses of the original SAM-Med3D and MSD datasets before redistribution.
-
----
-
-## Authors
-
-- **[9M3a1h3d9i9](https://github.com/9M3a1h3d9i9)** — MSc Artificial Intelligence, Shahed University
-- **Nazanin Sarabi** — MSc Biomedical Engineering, Shahed University
-- **Supervisor:** Dr. Forouzan Jostoghani — Shahed University
+این پروژه برای **استفاده آکادمیک و تحقیقاتی** طراحی شده است. استفاده تجاری مجاز نیست.
 
 ---
 
-## Acknowledgments
+## نویسندگان
 
-- The SAM-Med3D team (Shanghai Jiao Tong University & Shanghai AI Laboratory) for the pretrained model.
-- The Medical Segmentation Decathlon organizers for the Brain Tumour dataset.
-- The MONAI and TorchIO teams for medical imaging libraries.
+**نویسنده اصلی:**
+
+- **خانم مهندس نازنین سرابی** — دانشجوی کارشناسی ارشد مهندسی پزشکی، دانشگاه شاهد
+
+**دستیار کدنویسی:**
+
+- **[9M3a1h3d9i9](https://github.com/9M3a1h3d9i9)** — کارشناسی ارشد هوش مصنوعی، دانشگاه شاهد
+
+**استاد راهنما:**
+
+- **دکتر فروزان جستوجویی** — دانشگاه شاهد
 
 ---
 
-**Last updated:** 1405/06/23 (2026-09-14)
+## تشکر و قدردانی
+
+- تیم SAM-Med3D (دانشگاه Jiaotong شانگهای و آزمایشگاه هوش مصنوعی شانگهای) برای مدل pretrained
+- برگزارکنندگان Medical Segmentation Decathlon برای دیتاست تومور مغزی
+- تیم‌های MONAI و TorchIO برای کتابخانه‌های تصویربرداری پزشکی
+
+---
+
+**آخرین بروزرسانی:** ۱۴۰۵/۰۶/۲۳
